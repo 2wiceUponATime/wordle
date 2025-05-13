@@ -1,3 +1,5 @@
+#![allow(unused_unsafe)]
+
 pub mod guesses;
 pub mod answers;
 

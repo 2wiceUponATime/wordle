@@ -47,26 +47,6 @@ fn get_guesses(state: &mut WordleState, guesses: &Vec<Word>, answers: &Vec<Word>
 }
 
 fn main() {
-    let start = Instant::now();
-    println!("Getting words...");
-    let state = WordleState::new();
-    let mut all_guesses = Vec::with_capacity(GUESSES_LENGTH);
-    let mut all_answers = Vec::with_capacity(ANSWERS_LENGTH);
-    for answer in ANSWERS {
-        let word = Word::from(answer);
-        let is_valid = state.is_valid(&word);
-        if is_valid {
-            all_guesses.push(word);
-            all_answers.push(word);
-        }
-    }
-    for guess in GUESSES {
-        let word = Word::from(guess);
-        if state.is_valid(&word) {
-            all_guesses.push(word);
-        }
-    }
-    let answers_len = all_answers.len();
     /*
     let guesses_length = guesses.len();
     let answers_length = answers.len();
@@ -126,10 +106,31 @@ fn main() {
         println!("{marker} {} eliminates {eliminated}", string.to_ascii_uppercase())
     }
     */
+    let start = Instant::now();
+    println!("Getting words...");
+    let state = WordleState::new();
+    let mut all_guesses = Vec::with_capacity(GUESSES_LENGTH);
+    let mut all_answers = Vec::with_capacity(ANSWERS_LENGTH);
+    for answer in ANSWERS {
+        let word = Word::from(answer);
+        let is_valid = state.is_valid(&word);
+        if is_valid {
+            all_guesses.push(word);
+            all_answers.push(word);
+        }
+    }
+    for guess in GUESSES {
+        let word = Word::from(guess);
+        if state.is_valid(&word) {
+            all_guesses.push(word);
+        }
+    }
+    let answers_len = all_answers.len();
     let bar = ProgressBar::new(all_answers.len() as u64);
     bar.set_style(ProgressStyle::with_template(
         "[{elapsed_precise}] {wide_bar} {pos:>7}/{len:7} ({percent_precise}%)  "
     ).unwrap());
+        let mut failures: Vec<String> = vec![];
     let mut file = File::create("./solutions.txt").unwrap();
     for (index, answer) in all_answers.iter().enumerate() {
         let mut guesses = all_guesses.clone();
@@ -166,6 +167,9 @@ fn main() {
             answers = new_answers;
         }
         write!(file, "{}", solution.join(",")).unwrap();
+        if solution.len() > 6 {
+            failures.push(answer.into());
+        }
         if index < answers_len - 1 {
             writeln!(file).unwrap();
         }
@@ -173,4 +177,5 @@ fn main() {
     }
     let end = Instant::now();
     println!("\nDone in {} seconds", end.duration_since(start).as_secs_f32());
+    println!("Failed: {}", failures.join(", "));
 }
